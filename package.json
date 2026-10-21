@@ -1,0 +1,14 @@
+{
+  "name": "ditherforge",
+  "private": true,
+  "workspaces": ["packages/*", "apps/*"],
+  "overrides": {
+    "vite": "^6.0.0"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/studio",
+    "build": "npm run build --workspace=apps/studio",
+    "test": "npm run test --workspace=packages/core",
+    "test:watch": "npm run test:watch --workspace=packages/core"
+  }
+}
