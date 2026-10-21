@@ -54,6 +54,19 @@ export interface PixelArtConfig extends BaseConfig {
   palette: string[]; // hex colors
 }
 
+export interface GlitchConfig extends BaseConfig {
+  /** Intensity 0-100 */
+  intensity: number;
+  /** Seed for reproducible patterns */
+  seed: number;
+  /** Number of horizontal displacement bands */
+  scanlineCount: number;
+  /** Enable RGB channel separation */
+  rgbSplit: boolean;
+  /** Max pixel offset for RGB split */
+  rgbSplitDistance: number;
+}
+
 // --- Effect results ---
 
 export interface TextResult {
@@ -87,7 +100,14 @@ export interface PixelArtResult {
   pixelSize: number;
 }
 
-export type EffectResult = TextResult | DitherResult | HalftoneResult | PixelArtResult | ColorTextResult;
+export interface GlitchResult {
+  data: Uint8ClampedArray; // RGBA
+  width: number;
+  height: number;
+  glitch: true; // discriminant
+}
+
+export type EffectResult = TextResult | DitherResult | HalftoneResult | PixelArtResult | ColorTextResult | GlitchResult;
 
 export type EffectType =
   | 'binary'
@@ -100,7 +120,8 @@ export type EffectType =
   | 'pixel-art'
   | 'shape-ascii'
   | 'edge-ascii'
-  | 'color-ascii';
+  | 'color-ascii'
+  | 'glitch';
 
 export interface ColorPalette {
   id: string;

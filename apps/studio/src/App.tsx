@@ -6,6 +6,7 @@ import { DEFAULT_STATE } from './types.ts';
 import { readStateFromUrl } from './lib/url-state.ts';
 import { generateGlyphBitmaps } from './lib/glyph-atlas.ts';
 import ImageLoader from './components/ImageLoader.tsx';
+import WebcamCapture from './components/WebcamCapture.tsx';
 import EffectSelector from './components/EffectSelector.tsx';
 import EffectControls from './components/EffectControls.tsx';
 import PaletteSelector from './components/PaletteSelector.tsx';
@@ -13,6 +14,7 @@ import PreviewCanvas from './components/PreviewCanvas.tsx';
 import ExportPanel from './components/ExportPanel.tsx';
 import CompareView from './components/CompareView.tsx';
 import EmbedPanel from './components/EmbedPanel.tsx';
+import CodeExportPanel from './components/CodeExportPanel.tsx';
 
 export default function App() {
   const [state, setState] = useState<StudioState>(() => {
@@ -126,7 +128,10 @@ export default function App() {
 
       <main className="max-w-7xl mx-auto p-6">
         {!state.sourceImage ? (
-          <ImageLoader onImageLoad={handleImageLoad} />
+          <div className="space-y-6">
+            <ImageLoader onImageLoad={handleImageLoad} />
+            <WebcamCapture onCapture={handleImageLoad} />
+          </div>
         ) : (
           <div className="flex flex-col lg:grid lg:grid-cols-[280px_1fr] gap-6">
             <aside className="space-y-6 overflow-y-auto max-h-[calc(100vh-120px)] pr-2">
@@ -163,6 +168,9 @@ export default function App() {
                 effectConfig={state.effectConfig} transparentBg={state.transparentBg}
               />
               <EmbedPanel
+                result={lastResult} fgColor={state.fgColor} bgColor={state.bgColor}
+              />
+              <CodeExportPanel
                 result={lastResult} fgColor={state.fgColor} bgColor={state.bgColor}
               />
             </aside>

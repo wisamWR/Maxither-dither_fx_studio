@@ -1,13 +1,39 @@
 {
   "name": "@ditherforge/core",
-  "version": "0.1.0",
+  "version": "0.3.0",
+  "description": "Pure-function image effects library — ASCII art, dithering, halftone, pixel art, glitch, and more",
   "type": "module",
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "ascii-art",
+    "dithering",
+    "image-processing",
+    "halftone",
+    "pixel-art",
+    "glitch",
+    "braille",
+    "svg"
+  ],
+  "author": "wisamWR",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wisamWR/Maxither-dither_fx_studio"
   },
   "scripts": {
+    "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest"
   },

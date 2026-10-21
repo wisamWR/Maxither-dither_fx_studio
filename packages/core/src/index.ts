@@ -18,6 +18,8 @@ export type {
   EffectResult,
   EffectType,
   ColorPalette,
+  GlitchConfig,
+  GlitchResult,
   // v0.2 types
   GlyphBitmap,
   ShapeAsciiConfig,
@@ -65,6 +67,7 @@ export { pixelArtEffect } from './effects/pixel-art.js';
 export { shapeAsciiEffect } from './effects/shape-ascii.js';
 export { edgeAsciiEffect } from './effects/edge-ascii.js';
 export { colorAsciiEffect } from './effects/color-ascii.js';
+export { glitchEffect } from './effects/glitch.js';
 
 // Export
 export { textToAnsi, colorTextToAnsi } from './export/ansi.js';

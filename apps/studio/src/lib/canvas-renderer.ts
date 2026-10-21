@@ -1,6 +1,6 @@
 import type {
   TextResult, DitherResult, HalftoneResult, PixelArtResult,
-  ColorTextResult, EffectResult, EffectType,
+  ColorTextResult, GlitchResult, EffectResult, EffectType,
 } from '@ditherforge/core';
 
 export function renderToCanvas(
@@ -19,6 +19,8 @@ export function renderToCanvas(
     renderHalftone(ctx, result as HalftoneResult, fgColor, bgColor, transparentBg);
   } else if ('pixelSize' in result) {
     renderPixelArt(ctx, result as PixelArtResult);
+  } else if ('glitch' in result) {
+    renderGlitch(ctx, result as GlitchResult);
   } else {
     renderDither(ctx, result as DitherResult, fgColor, bgColor, transparentBg);
   }
@@ -147,6 +149,15 @@ function renderColorText(
       ctx.fillText(line[col], col * charW, row * lineH);
     }
   }
+}
+
+function renderGlitch(ctx: CanvasRenderingContext2D, result: GlitchResult) {
+  const { data, width, height } = result;
+  ctx.canvas.width = width;
+  ctx.canvas.height = height;
+  const imgData = ctx.createImageData(width, height);
+  imgData.data.set(data);
+  ctx.putImageData(imgData, 0, 0);
 }
 
 function hexToRgbArr(hex: string): [number, number, number] {

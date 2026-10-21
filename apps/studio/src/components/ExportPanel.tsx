@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { EffectResult, EffectType, AnsiColorMode } from '@ditherforge/core';
 import { exportPng, exportSvg, exportTxt, exportAnsi, copyToClipboard } from '../lib/export.ts';
 import { pushStateToUrl } from '../lib/url-state.ts';
+import { CanvasRecorder, downloadRecording } from '../lib/recorder.ts';
 import AnsiPreview from './AnsiPreview.tsx';
 
 interface Props {
@@ -21,6 +22,8 @@ export default function ExportPanel({
   const [shared, setShared] = useState(false);
   const [ansiMode, setAnsiMode] = useState<AnsiColorMode>('truecolor');
   const [ansiPreview, setAnsiPreview] = useState<string | null>(null);
+  const [recording, setRecording] = useState(false);
+  const recorderRef = useRef<CanvasRecorder | null>(null);
 
   const isText = result && 'text' in result;
 
@@ -54,6 +57,27 @@ export default function ExportPanel({
       </div>
       <button className="w-full px-3 py-2 text-xs bg-green-500/20 text-green-400 rounded hover:bg-green-500/30 transition-colors"
         onClick={handleShare}>{shared ? 'Link copied!' : 'Share settings (URL)'}</button>
+
+      <button
+        className={`w-full px-3 py-2 text-xs rounded transition-colors ${
+          recording ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-neutral-800 hover:bg-neutral-700'
+        }`}
+        disabled={!canvas}
+        onClick={async () => {
+          if (!canvas) return;
+          if (recording && recorderRef.current) {
+            const blob = await recorderRef.current.stop();
+            downloadRecording(blob);
+            recorderRef.current = null;
+            setRecording(false);
+          } else {
+            recorderRef.current = new CanvasRecorder(canvas);
+            recorderRef.current.start();
+            setRecording(true);
+          }
+        }}>
+        {recording ? 'Stop Recording' : 'Record WebM'}
+      </button>
 
       {isText && (
         <div className="border-t border-neutral-800 pt-3 mt-1">

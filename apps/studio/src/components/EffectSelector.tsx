@@ -12,6 +12,7 @@ const EFFECTS: { id: EffectType; label: string; group: string }[] = [
   { id: 'shape-ascii', label: 'Shape Match', group: 'Advanced' },
   { id: 'edge-ascii', label: 'Edge Detect', group: 'Advanced' },
   { id: 'color-ascii', label: 'Color ASCII', group: 'Advanced' },
+  { id: 'glitch', label: 'Glitch', group: 'FX' },
 ];
 
 interface Props {

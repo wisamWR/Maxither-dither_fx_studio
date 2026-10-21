@@ -132,6 +132,26 @@ export default function EffectControls({ effectType, config, onChange }: Props) 
           </label>
         </>
       )}
+
+      {effectType === 'glitch' && (
+        <>
+          <Slider label="Intensity" value={(config.intensity as number) ?? 50} min={0} max={100}
+            onChange={(v) => onChange('intensity', v)} />
+          <Slider label="Seed" value={(config.seed as number) ?? 42} min={0} max={9999}
+            onChange={(v) => onChange('seed', v)} />
+          <Slider label="Scanlines" value={(config.scanlineCount as number) ?? 10} min={1} max={50}
+            onChange={(v) => onChange('scanlineCount', v)} />
+          <label className="flex items-center gap-2 text-xs text-neutral-400">
+            <input type="checkbox" checked={(config.rgbSplit as boolean) ?? true}
+              onChange={(e) => onChange('rgbSplit', e.target.checked)} className="accent-green-400" />
+            RGB Split
+          </label>
+          {(config.rgbSplit as boolean) !== false && (
+            <Slider label="Split Distance" value={(config.rgbSplitDistance as number) ?? 5} min={1} max={20}
+              onChange={(v) => onChange('rgbSplitDistance', v)} />
+          )}
+        </>
+      )}
     </div>
   );
 }

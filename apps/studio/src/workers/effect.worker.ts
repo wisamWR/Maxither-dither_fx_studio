@@ -3,11 +3,13 @@ import {
   floydSteinberg, atkinsonDither, bayerDither,
   halftoneEffect, pixelArtEffect,
   shapeAsciiEffect, edgeAsciiEffect, colorAsciiEffect,
+  glitchEffect,
 } from '@ditherforge/core';
 import type {
   EffectType, BinaryConfig, AsciiConfig, BrailleConfig,
   DitherConfig, BayerConfig, HalftoneConfig, PixelArtConfig, EffectResult,
   ShapeAsciiConfig, EdgeAsciiConfig, ColorAsciiConfig, GlyphBitmap,
+  GlitchConfig,
 } from '@ditherforge/core';
 
 export interface WorkerRequest {
@@ -86,6 +88,19 @@ self.onmessage = (e: MessageEvent<WorkerRequest>) => {
           cols: (config.cols as number) ?? 80,
           charset: (config.charset as string) ?? ' .:-=+*#%@',
         } satisfies ColorAsciiConfig,
+      );
+      break;
+    case 'glitch':
+      result = glitchEffect(
+        { width, height, data: rgba },
+        {
+          ...base,
+          intensity: (config.intensity as number) ?? 50,
+          seed: (config.seed as number) ?? 42,
+          scanlineCount: (config.scanlineCount as number) ?? 10,
+          rgbSplit: (config.rgbSplit as boolean) ?? true,
+          rgbSplitDistance: (config.rgbSplitDistance as number) ?? 5,
+        } satisfies GlitchConfig,
       );
       break;
     default:
