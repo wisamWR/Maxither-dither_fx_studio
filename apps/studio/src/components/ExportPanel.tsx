@@ -3,6 +3,7 @@ import type { EffectResult, EffectType, AnsiColorMode } from '@ditherforge/core'
 import { exportPng, exportSvg, exportTxt, exportAnsi, copyToClipboard } from '../lib/export.ts';
 import { pushStateToUrl } from '../lib/url-state.ts';
 import { CanvasRecorder, downloadRecording } from '../lib/recorder.ts';
+import { captureCanvasAsGif, downloadGif } from '../lib/gif-export.ts';
 import AnsiPreview from './AnsiPreview.tsx';
 
 interface Props {
@@ -77,6 +78,17 @@ export default function ExportPanel({
           }
         }}>
         {recording ? 'Stop Recording' : 'Record WebM'}
+      </button>
+
+      <button
+        className="w-full px-3 py-2 text-xs bg-neutral-800 rounded hover:bg-neutral-700 transition-colors"
+        disabled={!canvas}
+        onClick={async () => {
+          if (!canvas) return;
+          const blob = await captureCanvasAsGif(canvas);
+          downloadGif(blob);
+        }}>
+        Export GIF
       </button>
 
       {isText && (

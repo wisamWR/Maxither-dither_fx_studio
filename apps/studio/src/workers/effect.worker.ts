@@ -4,6 +4,7 @@ import {
   halftoneEffect, pixelArtEffect,
   shapeAsciiEffect, edgeAsciiEffect, colorAsciiEffect,
   glitchEffect,
+  gaussianBlur, sharpen, posterize,
 } from '@ditherforge/core';
 import type {
   EffectType, BinaryConfig, AsciiConfig, BrailleConfig,
@@ -30,7 +31,16 @@ self.onmessage = (e: MessageEvent<WorkerRequest>) => {
   const { rgba, width, height, effectType, config } = e.data;
   const t0 = performance.now();
 
-  const gray = rgbaToGrayscale(rgba, width, height);
+  let gray = rgbaToGrayscale(rgba, width, height);
+
+  // Apply preprocessing filters
+  const blurRadius = (config.filterBlur as number) ?? 0;
+  const sharpenAmount = (config.filterSharpen as number) ?? 0;
+  const posterizeLevels = (config.filterPosterize as number) ?? 0;
+  if (blurRadius > 0) gray = gaussianBlur(gray, blurRadius);
+  if (sharpenAmount > 0) gray = sharpen(gray, sharpenAmount);
+  if (posterizeLevels >= 2 && posterizeLevels < 256) gray = posterize(gray, posterizeLevels);
+
   const base = {
     brightness: (config.brightness as number) ?? 0,
     contrast: (config.contrast as number) ?? 0,

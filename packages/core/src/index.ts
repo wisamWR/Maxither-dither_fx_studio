@@ -44,6 +44,8 @@ export {
 
 export { PALETTES, hexToRgb, nearestColor } from './utils/palette.js';
 
+export { gaussianBlur, sharpen, posterize } from './utils/filters.js';
+
 // Edge detection
 export { sobelGradient, directionToChar } from './utils/edge-detect.js';
 
