@@ -1,6 +1,6 @@
 import type {
   TextResult, DitherResult, HalftoneResult, PixelArtResult,
-  EffectResult, EffectType,
+  ColorTextResult, EffectResult, EffectType,
 } from '@ditherforge/core';
 
 export function renderToCanvas(
@@ -11,7 +11,9 @@ export function renderToCanvas(
   bgColor: string,
   transparentBg: boolean,
 ) {
-  if ('text' in result) {
+  if ('colors' in result && 'text' in result) {
+    renderColorText(ctx, result as ColorTextResult, bgColor, transparentBg);
+  } else if ('text' in result) {
     renderText(ctx, result as TextResult, fgColor, bgColor, transparentBg);
   } else if ('dots' in result) {
     renderHalftone(ctx, result as HalftoneResult, fgColor, bgColor, transparentBg);
@@ -107,6 +109,42 @@ function renderPixelArt(ctx: CanvasRenderingContext2D, result: PixelArtResult) {
       const i = (y * width + x) * 4;
       ctx.fillStyle = `rgb(${data[i]},${data[i + 1]},${data[i + 2]})`;
       ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+    }
+  }
+}
+
+function renderColorText(
+  ctx: CanvasRenderingContext2D,
+  result: ColorTextResult,
+  bgColor: string,
+  transparentBg: boolean,
+) {
+  const fontSize = 14;
+  const charW = fontSize * 0.6;
+  const lineH = fontSize * 1.2;
+  const lines = result.text.split('\n');
+  const w = Math.ceil(result.cols * charW);
+  const h = Math.ceil(lines.length * lineH);
+  ctx.canvas.width = w;
+  ctx.canvas.height = h;
+
+  if (!transparentBg) {
+    ctx.fillStyle = bgColor;
+    ctx.fillRect(0, 0, w, h);
+  } else {
+    ctx.clearRect(0, 0, w, h);
+  }
+
+  ctx.font = `${fontSize}px monospace`;
+  ctx.textBaseline = 'top';
+
+  for (let row = 0; row < lines.length; row++) {
+    const line = lines[row];
+    const rowColors = result.colors[row] ?? [];
+
+    for (let col = 0; col < line.length; col++) {
+      ctx.fillStyle = rowColors[col] ?? '#ffffff';
+      ctx.fillText(line[col], col * charW, row * lineH);
     }
   }
 }

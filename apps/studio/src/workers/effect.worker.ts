@@ -2,10 +2,12 @@ import {
   rgbaToGrayscale, binaryEffect, asciiEffect, brailleEffect,
   floydSteinberg, atkinsonDither, bayerDither,
   halftoneEffect, pixelArtEffect,
+  shapeAsciiEffect, edgeAsciiEffect, colorAsciiEffect,
 } from '@ditherforge/core';
 import type {
   EffectType, BinaryConfig, AsciiConfig, BrailleConfig,
   DitherConfig, BayerConfig, HalftoneConfig, PixelArtConfig, EffectResult,
+  ShapeAsciiConfig, EdgeAsciiConfig, ColorAsciiConfig, GlyphBitmap,
 } from '@ditherforge/core';
 
 export interface WorkerRequest {
@@ -59,6 +61,32 @@ self.onmessage = (e: MessageEvent<WorkerRequest>) => {
       break;
     case 'pixel-art':
       result = pixelArtEffect({ width, height, data: rgba }, { ...base, pixelSize: (config.pixelSize as number) ?? 8, palette: (config.palette as string[]) ?? ['#000000', '#ffffff'] } satisfies PixelArtConfig);
+      break;
+    case 'shape-ascii':
+      result = shapeAsciiEffect(gray, {
+        ...base,
+        cols: (config.cols as number) ?? 80,
+        glyphs: (config.glyphs as GlyphBitmap[]) ?? [],
+      } satisfies ShapeAsciiConfig);
+      break;
+    case 'edge-ascii':
+      result = edgeAsciiEffect(gray, {
+        ...base,
+        cols: (config.cols as number) ?? 80,
+        edgeThreshold: (config.edgeThreshold as number) ?? 30,
+        mode: (config.edgeMode as 'edge-only' | 'hybrid') ?? 'hybrid',
+        charset: (config.charset as string) ?? ' .:-=+*#%@',
+      } satisfies EdgeAsciiConfig);
+      break;
+    case 'color-ascii':
+      result = colorAsciiEffect(
+        { width, height, data: rgba },
+        {
+          ...base,
+          cols: (config.cols as number) ?? 80,
+          charset: (config.charset as string) ?? ' .:-=+*#%@',
+        } satisfies ColorAsciiConfig,
+      );
       break;
     default:
       throw new Error(`Unknown effect: ${effectType}`);

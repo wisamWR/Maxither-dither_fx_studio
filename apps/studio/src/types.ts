@@ -1,4 +1,4 @@
-import type { EffectType } from '@ditherforge/core';
+import type { EffectType, GlyphBitmap } from '@ditherforge/core';
 
 export interface StudioState {
   sourceImage: ImageData | null;
@@ -7,6 +7,8 @@ export interface StudioState {
   fgColor: string;
   bgColor: string;
   transparentBg: boolean;
+  glyphBitmaps: GlyphBitmap[] | null;
+  calibratedCharset: string | null;
 }
 
 export const DEFAULT_STATE: StudioState = {
@@ -30,4 +32,6 @@ export const DEFAULT_STATE: StudioState = {
   fgColor: '#00ff41',
   bgColor: '#0d1117',
   transparentBg: false,
+  glyphBitmaps: null,
+  calibratedCharset: null,
 };

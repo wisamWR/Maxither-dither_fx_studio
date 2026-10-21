@@ -9,6 +9,9 @@ const EFFECTS: { id: EffectType; label: string; group: string }[] = [
   { id: 'bayer', label: 'Bayer', group: 'Dither' },
   { id: 'halftone', label: 'Halftone', group: 'Dots' },
   { id: 'pixel-art', label: 'Pixel Art', group: 'Color' },
+  { id: 'shape-ascii', label: 'Shape Match', group: 'Advanced' },
+  { id: 'edge-ascii', label: 'Edge Detect', group: 'Advanced' },
+  { id: 'color-ascii', label: 'Color ASCII', group: 'Advanced' },
 ];
 
 interface Props {

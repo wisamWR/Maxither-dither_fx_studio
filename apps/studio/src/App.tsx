@@ -1,15 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { EffectType, EffectResult } from '@ditherforge/core';
-import { PALETTES } from '@ditherforge/core';
+import { PALETTES, buildCalibratedCharset } from '@ditherforge/core';
 import type { StudioState } from './types.ts';
 import { DEFAULT_STATE } from './types.ts';
 import { readStateFromUrl } from './lib/url-state.ts';
+import { generateGlyphBitmaps } from './lib/glyph-atlas.ts';
 import ImageLoader from './components/ImageLoader.tsx';
 import EffectSelector from './components/EffectSelector.tsx';
 import EffectControls from './components/EffectControls.tsx';
 import PaletteSelector from './components/PaletteSelector.tsx';
 import PreviewCanvas from './components/PreviewCanvas.tsx';
 import ExportPanel from './components/ExportPanel.tsx';
+import CompareView from './components/CompareView.tsx';
+import EmbedPanel from './components/EmbedPanel.tsx';
 
 export default function App() {
   const [state, setState] = useState<StudioState>(() => {
@@ -18,6 +21,7 @@ export default function App() {
   });
   const [lastResult, setLastResult] = useState<EffectResult | null>(null);
   const [canvasEl, setCanvasEl] = useState<HTMLCanvasElement | null>(null);
+  const [compareMode, setCompareMode] = useState(false);
 
   const handleImageLoad = (imageData: ImageData) => {
     setState((prev) => ({ ...prev, sourceImage: imageData }));
@@ -53,8 +57,33 @@ export default function App() {
     return () => window.removeEventListener('paste', handlePaste);
   }, [state.sourceImage]);
 
+  // Generate glyph bitmaps when shape-ascii is first selected
+  useEffect(() => {
+    if (state.effectType === 'shape-ascii' && !state.glyphBitmaps) {
+      const bitmaps = generateGlyphBitmaps();
+      const calibrated = buildCalibratedCharset(bitmaps);
+      setState((prev) => ({
+        ...prev,
+        glyphBitmaps: bitmaps,
+        calibratedCharset: calibrated,
+        effectConfig: { ...prev.effectConfig, glyphs: bitmaps },
+      }));
+    }
+  }, [state.effectType, state.glyphBitmaps]);
+
   const handleEffectChange = (effectType: EffectType) => {
-    setState((prev) => ({ ...prev, effectType }));
+    setState((prev) => {
+      const updates: Partial<StudioState> = { effectType };
+      // Auto-inject calibrated charset if available
+      if ((effectType === 'ascii' || effectType === 'color-ascii') && prev.calibratedCharset) {
+        updates.effectConfig = { ...prev.effectConfig, charset: prev.calibratedCharset };
+      }
+      // Inject glyphs for shape-ascii
+      if (effectType === 'shape-ascii' && prev.glyphBitmaps) {
+        updates.effectConfig = { ...prev.effectConfig, glyphs: prev.glyphBitmaps };
+      }
+      return { ...prev, ...updates };
+    });
   };
 
   const handleConfigChange = (key: string, value: unknown) => {
@@ -101,12 +130,21 @@ export default function App() {
         ) : (
           <div className="flex flex-col lg:grid lg:grid-cols-[280px_1fr] gap-6">
             <aside className="space-y-6 overflow-y-auto max-h-[calc(100vh-120px)] pr-2">
-              <button
-                className="text-sm text-neutral-400 hover:text-neutral-200"
-                onClick={() => { setState(DEFAULT_STATE); setLastResult(null); setCanvasEl(null); }}
-              >
-                &larr; New image
-              </button>
+              <div className="flex items-center gap-4">
+                <button
+                  className="text-sm text-neutral-400 hover:text-neutral-200"
+                  onClick={() => { setState(DEFAULT_STATE); setLastResult(null); setCanvasEl(null); setCompareMode(false); }}
+                >
+                  &larr; New image
+                </button>
+                <button
+                  className={`text-sm px-3 py-1 rounded transition-colors ${
+                    compareMode ? 'bg-green-500/20 text-green-400' : 'text-neutral-400 hover:text-neutral-200'
+                  }`}
+                  onClick={() => setCompareMode(!compareMode)}>
+                  {compareMode ? 'Single View' : 'Compare'}
+                </button>
+              </div>
 
               <EffectSelector value={state.effectType} onChange={handleEffectChange} />
               <EffectControls effectType={state.effectType} config={state.effectConfig} onChange={handleConfigChange} />
@@ -124,15 +162,28 @@ export default function App() {
                 fgColor={state.fgColor} bgColor={state.bgColor}
                 effectConfig={state.effectConfig} transparentBg={state.transparentBg}
               />
+              <EmbedPanel
+                result={lastResult} fgColor={state.fgColor} bgColor={state.bgColor}
+              />
             </aside>
 
             <section>
-              <PreviewCanvas
-                sourceImage={state.sourceImage} effectType={state.effectType}
-                config={state.effectConfig} fgColor={state.fgColor} bgColor={state.bgColor}
-                transparentBg={state.transparentBg}
-                onResult={handleResult} onCanvasReady={handleCanvasReady}
-              />
+              {compareMode ? (
+                <CompareView
+                  sourceImage={state.sourceImage}
+                  config={state.effectConfig}
+                  fgColor={state.fgColor}
+                  bgColor={state.bgColor}
+                  transparentBg={state.transparentBg}
+                />
+              ) : (
+                <PreviewCanvas
+                  sourceImage={state.sourceImage} effectType={state.effectType}
+                  config={state.effectConfig} fgColor={state.fgColor} bgColor={state.bgColor}
+                  transparentBg={state.transparentBg}
+                  onResult={handleResult} onCanvasReady={handleCanvasReady}
+                />
+              )}
             </section>
           </div>
         )}

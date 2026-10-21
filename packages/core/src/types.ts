@@ -87,7 +87,7 @@ export interface PixelArtResult {
   pixelSize: number;
 }
 
-export type EffectResult = TextResult | DitherResult | HalftoneResult | PixelArtResult;
+export type EffectResult = TextResult | DitherResult | HalftoneResult | PixelArtResult | ColorTextResult;
 
 export type EffectType =
   | 'binary'
@@ -97,10 +97,89 @@ export type EffectType =
   | 'atkinson'
   | 'bayer'
   | 'halftone'
-  | 'pixel-art';
+  | 'pixel-art'
+  | 'shape-ascii'
+  | 'edge-ascii'
+  | 'color-ascii';
 
 export interface ColorPalette {
   id: string;
   name: string;
   colors: string[];
+}
+
+// --- v0.2 types ---
+
+/** Pre-rendered glyph bitmap for shape matching */
+export interface GlyphBitmap {
+  char: string;
+  /** Grayscale pixels, row-major (0=black, 255=white) */
+  bitmap: Uint8Array;
+  width: number;
+  height: number;
+  /** Ink density: fraction of dark pixels (0=empty, 1=fully filled) */
+  density: number;
+}
+
+/** Config for shape-matching ASCII */
+export interface ShapeAsciiConfig extends BaseConfig {
+  cols: number;
+  glyphs: GlyphBitmap[];
+}
+
+/** Config for edge-direction ASCII */
+export interface EdgeAsciiConfig extends BaseConfig {
+  cols: number;
+  /** Minimum gradient magnitude (0–255) to render an edge character */
+  edgeThreshold: number;
+  /** 'edge-only' shows only edges, 'hybrid' fills non-edges with brightness chars */
+  mode: 'edge-only' | 'hybrid';
+  /** Brightness charset used in hybrid mode for non-edge cells */
+  charset: string;
+}
+
+/** Config for color ASCII */
+export interface ColorAsciiConfig extends BaseConfig {
+  cols: number;
+  charset: string;
+}
+
+/** ASCII text with per-character color information */
+export interface ColorTextResult {
+  text: string;
+  rows: number;
+  cols: number;
+  /** Hex color per character, indexed [row][col] */
+  colors: string[][];
+}
+
+/** Full gradient map of an image */
+export interface GradientMap {
+  magnitudes: Float32Array;
+  directions: Float32Array;
+  width: number;
+  height: number;
+  maxMagnitude: number;
+}
+
+/** ANSI color mode */
+export type AnsiColorMode = '16' | '256' | 'truecolor';
+
+/** Options for ANSI export */
+export interface AnsiExportOptions {
+  mode: AnsiColorMode;
+  /** Use background color fills instead of foreground */
+  useBackground: boolean;
+}
+
+/** Options for animated SVG */
+export type SvgAnimation = 'none' | 'reveal' | 'scanline' | 'flicker' | 'matrix';
+
+export interface AnimatedSvgOptions {
+  fontSize: number;
+  color: string;
+  bgColor: string;
+  animation: SvgAnimation;
+  /** Animation duration in seconds */
+  duration: number;
 }

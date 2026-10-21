@@ -1,5 +1,11 @@
-import type { EffectResult, EffectType, TextResult, HalftoneResult, PixelArtResult } from '@ditherforge/core';
-import { textToSvg, halftonesToSvg, pixelArtToSvg } from '@ditherforge/core';
+import type {
+  EffectResult, EffectType, TextResult, HalftoneResult, PixelArtResult,
+  AnsiExportOptions, AnimatedSvgOptions, ColorTextResult,
+} from '@ditherforge/core';
+import {
+  textToSvg, halftonesToSvg, pixelArtToSvg,
+  textToAnsi, colorTextToAnsi, textToAnimatedSvg,
+} from '@ditherforge/core';
 
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
@@ -51,6 +57,29 @@ export function exportSvg(
 export function exportTxt(result: EffectResult) {
   if (!('text' in result)) return;
   downloadBlob(new Blob([(result as TextResult).text], { type: 'text/plain' }), 'ditherforge.txt');
+}
+
+export function exportAnsi(
+  result: EffectResult,
+  fgColor: string,
+  opts: AnsiExportOptions,
+): string | null {
+  if ('colors' in result && 'text' in result) {
+    return colorTextToAnsi(result as ColorTextResult, opts);
+  }
+  if ('text' in result) {
+    return textToAnsi(result as TextResult, fgColor, opts);
+  }
+  return null;
+}
+
+export function exportAnimatedSvg(
+  result: EffectResult,
+  opts: AnimatedSvgOptions,
+): void {
+  if (!('text' in result)) return;
+  const svg = textToAnimatedSvg(result as TextResult, opts);
+  downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), 'ditherforge-animated.svg');
 }
 
 export async function copyToClipboard(canvas: HTMLCanvasElement): Promise<boolean> {

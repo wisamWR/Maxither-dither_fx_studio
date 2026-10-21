@@ -96,6 +96,42 @@ export default function EffectControls({ effectType, config, onChange }: Props) 
         <Slider label="Pixel Size" value={(config.pixelSize as number) ?? 8} min={2} max={32}
           onChange={(v) => onChange('pixelSize', v)} />
       )}
+
+      {effectType === 'shape-ascii' && (
+        <Slider label="Columns" value={(config.cols as number) ?? 80} min={10} max={200}
+          onChange={(v) => onChange('cols', v)} />
+      )}
+
+      {effectType === 'edge-ascii' && (
+        <>
+          <Slider label="Columns" value={(config.cols as number) ?? 80} min={10} max={200}
+            onChange={(v) => onChange('cols', v)} />
+          <Slider label="Edge Threshold" value={(config.edgeThreshold as number) ?? 30} min={0} max={255}
+            onChange={(v) => onChange('edgeThreshold', v)} />
+          <label className="block">
+            <span className="text-xs text-neutral-400">Mode</span>
+            <select value={(config.edgeMode as string) ?? 'hybrid'}
+              onChange={(e) => onChange('edgeMode', e.target.value)}
+              className="w-full bg-neutral-800 rounded px-2 py-1 text-sm text-neutral-200 mt-1">
+              <option value="edge-only">Edge Only</option>
+              <option value="hybrid">Hybrid (edges + brightness)</option>
+            </select>
+          </label>
+        </>
+      )}
+
+      {effectType === 'color-ascii' && (
+        <>
+          <Slider label="Columns" value={(config.cols as number) ?? 80} min={10} max={200}
+            onChange={(v) => onChange('cols', v)} />
+          <label className="block">
+            <span className="text-xs text-neutral-400">Charset (dark → bright)</span>
+            <input type="text" value={(config.charset as string) ?? ' .:-=+*#%@'}
+              onChange={(e) => onChange('charset', e.target.value)}
+              className="w-full bg-neutral-800 rounded px-2 py-1 text-sm font-mono text-neutral-200 mt-1" />
+          </label>
+        </>
+      )}
     </div>
   );
 }
