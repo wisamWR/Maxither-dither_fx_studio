@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/logo.jpeg" alt="Maxither" width="200" style="border-radius: 16px;" />
+<img src="apps\studio\public\logo_readme.jpeg" alt="Maxither" width="200" style="border-radius: 16px;" />
 
 # Maxither
 
