@@ -45,7 +45,7 @@ export class CanvasRecorder {
   }
 }
 
-export function downloadRecording(blob: Blob, filename = 'ditherforge-recording.webm'): void {
+export function downloadRecording(blob: Blob, filename = 'maxither-recording.webm'): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

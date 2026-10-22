@@ -35,16 +35,22 @@ export default function CompareView({
     };
   }, []);
 
+  const requestIdRef = useRef(0);
+
   const processEffect = useCallback(
     (worker: Worker | null, canvas: HTMLCanvasElement | null, effectType: EffectType) => {
       if (!worker || !canvas || !sourceImage) return;
       const request: WorkerRequest = {
+        requestId: ++requestIdRef.current,
         rgba: sourceImage.data, width: sourceImage.width,
         height: sourceImage.height, effectType, config,
+        fgColor, bgColor,
       };
       worker.onmessage = (e: MessageEvent<WorkerResponse>) => {
+        const msg = e.data;
+        if (msg.type !== 'effect') return;
         const ctx = canvas.getContext('2d');
-        if (ctx) renderToCanvas(ctx, e.data.result, effectType, fgColor, bgColor, transparentBg);
+        if (ctx) renderToCanvas(ctx, msg.result, effectType, fgColor, bgColor, transparentBg);
       };
       worker.postMessage(request);
     },

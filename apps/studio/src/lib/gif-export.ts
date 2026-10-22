@@ -500,7 +500,7 @@ export async function captureCanvasAsGif(canvas: HTMLCanvasElement): Promise<Blo
 /**
  * Download a GIF blob as a file.
  */
-export function downloadGif(blob: Blob, filename = 'ditherforge.gif'): void {
+export function downloadGif(blob: Blob, filename = 'maxither.gif'): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

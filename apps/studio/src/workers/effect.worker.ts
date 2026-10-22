@@ -5,30 +5,53 @@ import {
   shapeAsciiEffect, edgeAsciiEffect, colorAsciiEffect,
   glitchEffect,
   gaussianBlur, sharpen, posterize,
+  ssim, psnr, resizeGray, rasterizeBraille, rasterizeText,
 } from '@ditherforge/core';
 import type {
   EffectType, BinaryConfig, AsciiConfig, BrailleConfig,
   DitherConfig, BayerConfig, HalftoneConfig, PixelArtConfig, EffectResult,
   ShapeAsciiConfig, EdgeAsciiConfig, ColorAsciiConfig, GlyphBitmap,
   GlitchConfig,
+  GrayscaleImage, TextResult, DitherResult, DisplayPolarity,
 } from '@ditherforge/core';
 
 export interface WorkerRequest {
+  requestId: number;
   rgba: Uint8ClampedArray;
   width: number;
   height: number;
   effectType: EffectType;
   config: Record<string, unknown>;
+  fgColor?: string;
+  bgColor?: string;
 }
 
-export interface WorkerResponse {
+export interface EffectResponse {
+  type: 'effect';
+  requestId: number;
   result: EffectResult;
   effectType: EffectType;
   durationMs: number;
 }
 
+export interface MetricsResponse {
+  type: 'metrics';
+  requestId: number;
+  ssim: number | null;
+  psnr: number | null;
+}
+
+export type WorkerResponse = EffectResponse | MetricsResponse;
+
+function luminance(hex: string): number {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return 0.299 * r + 0.587 * g + 0.114 * b;
+}
+
 self.onmessage = (e: MessageEvent<WorkerRequest>) => {
-  const { rgba, width, height, effectType, config } = e.data;
+  const { requestId, rgba, width, height, effectType, config, fgColor, bgColor } = e.data;
   const t0 = performance.now();
 
   let gray = rgbaToGrayscale(rgba, width, height);
@@ -117,6 +140,75 @@ self.onmessage = (e: MessageEvent<WorkerRequest>) => {
       throw new Error(`Unknown effect: ${effectType}`);
   }
 
-  const response: WorkerResponse = { result, effectType, durationMs: performance.now() - t0 };
-  self.postMessage(response);
+  // Phase 1: Post effect result immediately
+  const effectResponse: EffectResponse = {
+    type: 'effect',
+    requestId,
+    result,
+    effectType,
+    durationMs: performance.now() - t0,
+  };
+  self.postMessage(effectResponse);
+
+  // Phase 2: Compute metrics and post separately
+  const polarity: DisplayPolarity = fgColor && bgColor && luminance(fgColor) > luminance(bgColor)
+    ? 'light-on-dark'
+    : 'dark-on-light';
+
+  let ssimScore: number | null = null;
+  let psnrScore: number | null = null;
+
+  try {
+    switch (effectType) {
+      case 'floyd-steinberg':
+      case 'atkinson':
+      case 'bayer': {
+        const ditherResult = result as DitherResult;
+        const ditherImg: GrayscaleImage = {
+          data: ditherResult.data,
+          width: ditherResult.width,
+          height: ditherResult.height,
+        };
+        const blurredRef = gaussianBlur(gray, 1);
+        const blurredDither = gaussianBlur(ditherImg, 1);
+        ssimScore = ssim(blurredRef, blurredDither);
+        psnrScore = psnr(blurredRef, blurredDither);
+        break;
+      }
+      case 'braille': {
+        const brailleImg = rasterizeBraille(result as TextResult, polarity);
+        const resized = resizeGray(brailleImg, gray.width, gray.height, 'stretch');
+        const blurredRef = gaussianBlur(gray, 1);
+        const blurredRaster = gaussianBlur(resized, 1);
+        ssimScore = ssim(blurredRef, blurredRaster);
+        psnrScore = psnr(blurredRef, blurredRaster);
+        break;
+      }
+      case 'shape-ascii': {
+        const glyphs = (config.glyphs as GlyphBitmap[]) ?? [];
+        if (glyphs.length > 0) {
+          const rasterized = rasterizeText(result as TextResult, glyphs, polarity);
+          const resized = resizeGray(rasterized, gray.width, gray.height, 'stretch');
+          const blurredRef = gaussianBlur(gray, 1);
+          const blurredRaster = gaussianBlur(resized, 1);
+          ssimScore = ssim(blurredRef, blurredRaster);
+          psnrScore = psnr(blurredRef, blurredRaster);
+        }
+        break;
+      }
+      // All others: no SSIM/PSNR
+      default:
+        break;
+    }
+  } catch {
+    // If metrics computation fails, leave as null
+  }
+
+  const metricsResponse: MetricsResponse = {
+    type: 'metrics',
+    requestId,
+    ssim: ssimScore,
+    psnr: psnrScore,
+  };
+  self.postMessage(metricsResponse);
 };

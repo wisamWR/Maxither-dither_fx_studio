@@ -46,6 +46,14 @@ export { PALETTES, hexToRgb, nearestColor } from './utils/palette.js';
 
 export { gaussianBlur, sharpen, posterize } from './utils/filters.js';
 
+export { resizeGray } from './utils/resize.js';
+export type { ResizeFit } from './utils/resize.js';
+
+// Metrics
+export { mse, psnr, ssim } from './metrics/ssim.js';
+export { rasterizeText, rasterizeBraille } from './metrics/rasterize.js';
+export type { DisplayPolarity } from './metrics/rasterize.js';
+
 // Edge detection
 export { sobelGradient, directionToChar } from './utils/edge-detect.js';
 

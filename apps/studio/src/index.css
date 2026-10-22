@@ -9,15 +9,19 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Sidebar scrollbar */
 aside::-webkit-scrollbar {
-  width: 4px;
+  width: 3px;
 }
 aside::-webkit-scrollbar-track {
   background: transparent;
 }
 aside::-webkit-scrollbar-thumb {
-  background: #333;
+  background: #262626;
   border-radius: 2px;
+}
+aside::-webkit-scrollbar-thumb:hover {
+  background: #404040;
 }
 
 canvas {
@@ -28,4 +32,14 @@ canvas {
 input[type='range'] {
   height: 4px;
   border-radius: 2px;
+}
+
+/* Smooth transitions for sidebar tab content */
+aside > div {
+  animation: fadeIn 0.15s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }

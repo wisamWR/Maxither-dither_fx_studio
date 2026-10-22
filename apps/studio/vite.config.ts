@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@ditherforge/core': path.resolve(__dirname, '../../packages/core/src'),
+      '@ditherforge/hardware': path.resolve(__dirname, '../../packages/hardware/src'),
     },
   },
 });

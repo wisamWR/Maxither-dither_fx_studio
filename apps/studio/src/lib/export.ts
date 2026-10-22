@@ -18,7 +18,7 @@ function downloadBlob(blob: Blob, filename: string) {
 
 export function exportPng(canvas: HTMLCanvasElement) {
   canvas.toBlob((blob) => {
-    if (blob) downloadBlob(blob, 'ditherforge.png');
+    if (blob) downloadBlob(blob, 'maxither.png');
   }, 'image/png');
 }
 
@@ -51,12 +51,12 @@ export function exportSvg(
     svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${r.width}" height="${r.height}"><image href="${dataUrl}" width="${r.width}" height="${r.height}"/></svg>`;
   }
 
-  downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), 'ditherforge.svg');
+  downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), 'maxither.svg');
 }
 
 export function exportTxt(result: EffectResult) {
   if (!('text' in result)) return;
-  downloadBlob(new Blob([(result as TextResult).text], { type: 'text/plain' }), 'ditherforge.txt');
+  downloadBlob(new Blob([(result as TextResult).text], { type: 'text/plain' }), 'maxither.txt');
 }
 
 export function exportAnsi(
@@ -79,7 +79,7 @@ export function exportAnimatedSvg(
 ): void {
   if (!('text' in result)) return;
   const svg = textToAnimatedSvg(result as TextResult, opts);
-  downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), 'ditherforge-animated.svg');
+  downloadBlob(new Blob([svg], { type: 'image/svg+xml' }), 'maxither-animated.svg');
 }
 
 export async function copyToClipboard(canvas: HTMLCanvasElement): Promise<boolean> {

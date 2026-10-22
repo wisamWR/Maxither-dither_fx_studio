@@ -16,12 +16,12 @@ const ANIMATIONS: { id: SvgAnimation; label: string }[] = [
   { id: 'matrix', label: 'Matrix' },
 ];
 
-const HF_SPACE_URL = 'https://huggingface.co/spaces/wisamWR/ditherforge-api';
+const HF_SPACE_URL = 'https://huggingface.co/spaces/wisamWR/maxither-api';
 
 export default function EmbedPanel({ result, fgColor, bgColor }: Props) {
   const [animation, setAnimation] = useState<SvgAnimation>('none');
   const [duration, setDuration] = useState(2);
-  const [embedText, setEmbedText] = useState('DitherForge');
+  const [embedText, setEmbedText] = useState('Maxither');
   const [embedStyle, setEmbedStyle] = useState('ascii');
   const [copied, setCopied] = useState(false);
 
@@ -37,7 +37,7 @@ export default function EmbedPanel({ result, fgColor, bgColor }: Props) {
 
   const embedUrl = `${HF_SPACE_URL}/api/text?text=${encodeURIComponent(embedText)}&style=${embedStyle}&color=${encodeURIComponent(fgColor.replace('#', ''))}&bg=${encodeURIComponent(bgColor.replace('#', ''))}&animate=${animation}`;
 
-  const embedMarkdown = `[![DitherForge](${embedUrl})](https://github.com/wisamWR/Maxither-dither_fx_studio)`;
+  const embedMarkdown = `[![Maxither](${embedUrl})](https://github.com/wisamWR/Maxither-dither_fx_studio)`;
 
   const handleCopyEmbed = () => {
     navigator.clipboard.writeText(embedMarkdown);

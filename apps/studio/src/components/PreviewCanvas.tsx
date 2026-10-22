@@ -19,8 +19,10 @@ export default function PreviewCanvas({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const workerRef = useRef<Worker | null>(null);
+  const requestIdRef = useRef(0);
   const [processing, setProcessing] = useState(false);
   const [duration, setDuration] = useState(0);
+  const [ssimScore, setSsimScore] = useState<number | null>(null);
 
   useEffect(() => {
     workerRef.current = new Worker(
@@ -39,21 +41,31 @@ export default function PreviewCanvas({
     setProcessing(true);
 
     const request: WorkerRequest = {
+      requestId: ++requestIdRef.current,
       rgba: sourceImage.data,
       width: sourceImage.width,
       height: sourceImage.height,
       effectType,
       config,
+      fgColor,
+      bgColor,
     };
 
     workerRef.current.onmessage = (e: MessageEvent<WorkerResponse>) => {
-      const { result, durationMs } = e.data;
-      setProcessing(false);
-      setDuration(durationMs);
-      onResult(result);
+      const msg = e.data;
+      if (msg.type === 'effect') {
+        if (msg.requestId !== requestIdRef.current) return; // stale
+        setProcessing(false);
+        setDuration(msg.durationMs);
+        setSsimScore(null); // reset while metrics compute
+        onResult(msg.result);
 
-      const ctx = canvasRef.current?.getContext('2d');
-      if (ctx) renderToCanvas(ctx, result, effectType, fgColor, bgColor, transparentBg);
+        const ctx = canvasRef.current?.getContext('2d');
+        if (ctx) renderToCanvas(ctx, msg.result, msg.effectType, fgColor, bgColor, transparentBg);
+      } else if (msg.type === 'metrics') {
+        if (msg.requestId !== requestIdRef.current) return; // stale
+        setSsimScore(msg.ssim);
+      }
     };
 
     workerRef.current.postMessage(request);
@@ -68,8 +80,13 @@ export default function PreviewCanvas({
     <div className="relative">
       <canvas ref={canvasRef}
         className="max-w-full h-auto border border-neutral-800 rounded bg-neutral-900" />
-      <div className="absolute top-2 right-2 text-xs text-neutral-500 bg-neutral-900/80 px-2 py-0.5 rounded">
-        {processing ? 'Processing...' : `${duration.toFixed(0)} ms`}
+      <div className="absolute top-2 right-2 text-xs text-neutral-500 bg-neutral-900/80 px-2 py-0.5 rounded flex gap-2">
+        {processing ? 'Processing...' : (
+          <>
+            <span>{duration.toFixed(0)} ms</span>
+            {ssimScore !== null && <span>SSIM: {ssimScore.toFixed(2)}</span>}
+          </>
+        )}
       </div>
     </div>
   );

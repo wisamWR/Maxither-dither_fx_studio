@@ -7,7 +7,9 @@
     "allowImportingTsExtensions": true,
     "paths": {
       "@ditherforge/core": ["../../packages/core/src"],
-      "@ditherforge/core/*": ["../../packages/core/src/*"]
+      "@ditherforge/core/*": ["../../packages/core/src/*"],
+      "@ditherforge/hardware": ["../../packages/hardware/src"],
+      "@ditherforge/hardware/*": ["../../packages/hardware/src/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"]
