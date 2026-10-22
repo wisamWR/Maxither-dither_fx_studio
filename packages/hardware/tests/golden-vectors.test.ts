@@ -1,11 +1,17 @@
-import { describe, it, expect } from 'vitest';
-import { packBits } from '../src/pack.js';
-import type { Panel } from '../src/types.js';
+import { describe, it, expect } from "vitest";
+import { packBits } from "../src/pack.js";
+import type { Panel } from "../src/types.js";
 
 const brightPanel: Panel = {
-  id: 'test', name: 'Test', width: 10, height: 10,
-  pixelShape: 'square', tint: '#fff', category: 'oled',
-  oneIs: 'bright', notes: '',
+  id: "test",
+  name: "Test",
+  width: 10,
+  height: 10,
+  pixelShape: "square",
+  tint: "#fff",
+  category: "oled",
+  oneIs: "bright",
+  notes: "",
 };
 
 // 10×10 image, 6 white pixels: A(0,0) B(7,0) C(8,0) D(9,1) E(0,8) F(9,9)
@@ -20,11 +26,11 @@ function make10x10(): Uint8Array {
   return data;
 }
 
-describe('golden vectors — 10×10, 6 white pixels, oneIs=bright', () => {
+describe("golden vectors - 10×10, 6 white pixels, oneIs=bright", () => {
   const data = make10x10();
 
-  it('row-msb', () => {
-    const packed = packBits(data, 10, 10, 'row-msb', brightPanel, false);
+  it("row-msb", () => {
+    const packed = packBits(data, 10, 10, "row-msb", brightPanel, false);
     expect(packed.length).toBe(20);
     expect(packed[0]).toBe(0x81);
     expect(packed[1]).toBe(0x80);
@@ -37,8 +43,8 @@ describe('golden vectors — 10×10, 6 white pixels, oneIs=bright', () => {
     expect(packed[19]).toBe(0x40);
   });
 
-  it('row-lsb', () => {
-    const packed = packBits(data, 10, 10, 'row-lsb', brightPanel, false);
+  it("row-lsb", () => {
+    const packed = packBits(data, 10, 10, "row-lsb", brightPanel, false);
     expect(packed.length).toBe(20);
     expect(packed[0]).toBe(0x81);
     expect(packed[1]).toBe(0x01);
@@ -50,8 +56,8 @@ describe('golden vectors — 10×10, 6 white pixels, oneIs=bright', () => {
     expect(packed[19]).toBe(0x02);
   });
 
-  it('page-vertical', () => {
-    const packed = packBits(data, 10, 10, 'page-vertical', brightPanel, false);
+  it("page-vertical", () => {
+    const packed = packBits(data, 10, 10, "page-vertical", brightPanel, false);
     expect(packed.length).toBe(20);
     expect(packed[0]).toBe(0x01);
     for (let i = 1; i <= 6; i++) expect(packed[i]).toBe(0x00);
@@ -63,9 +69,9 @@ describe('golden vectors — 10×10, 6 white pixels, oneIs=bright', () => {
     expect(packed[19]).toBe(0x02);
   });
 
-  it('invert flips non-zero bytes, padding stays 0', () => {
-    const packed = packBits(data, 10, 10, 'row-msb', brightPanel, true);
-    expect(packed[0]).toBe(0x7E);
+  it("invert flips non-zero bytes, padding stays 0", () => {
+    const packed = packBits(data, 10, 10, "row-msb", brightPanel, true);
+    expect(packed[0]).toBe(0x7e);
     expect(packed[1]).toBe(0x40);
   });
 });

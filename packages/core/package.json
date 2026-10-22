@@ -1,7 +1,7 @@
 {
   "name": "@ditherforge/core",
   "version": "0.3.0",
-  "description": "Pure-function image effects library — ASCII art, dithering, halftone, pixel art, glitch, and more",
+  "description": "Pure-function image effects library - ASCII art, dithering, halftone, pixel art, glitch, and more",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

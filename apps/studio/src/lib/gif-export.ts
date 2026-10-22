@@ -1,6 +1,6 @@
 /**
  * Minimal GIF89a animated encoder.
- * Zero dependencies — supports 256-color palette per frame with LZW compression.
+ * Zero dependencies - supports 256-color palette per frame with LZW compression.
  */
 
 interface GifFrame {
@@ -55,37 +55,59 @@ class ByteStream {
 }
 
 // ---------------------------------------------------------------------------
-// Color quantization — median-cut to 256 colours
+// Color quantization - median-cut to 256 colours
 // ---------------------------------------------------------------------------
 
 interface ColorBox {
   pixels: Uint32Array; // packed RGBA as 0xAABBGGRR
-  rMin: number; rMax: number;
-  gMin: number; gMax: number;
-  bMin: number; bMax: number;
+  rMin: number;
+  rMax: number;
+  gMin: number;
+  gMax: number;
+  bMin: number;
+  bMax: number;
 }
 
 function packRGBA(r: number, g: number, b: number, _a: number): number {
   return (r | (g << 8) | (b << 16)) >>> 0;
 }
 
-function unpackR(c: number): number { return c & 0xff; }
-function unpackG(c: number): number { return (c >> 8) & 0xff; }
-function unpackB(c: number): number { return (c >> 16) & 0xff; }
+function unpackR(c: number): number {
+  return c & 0xff;
+}
+function unpackG(c: number): number {
+  return (c >> 8) & 0xff;
+}
+function unpackB(c: number): number {
+  return (c >> 16) & 0xff;
+}
 
-function computeBounds(pixels: Uint32Array): Omit<ColorBox, 'pixels'> {
-  let rMin = 255, rMax = 0, gMin = 255, gMax = 0, bMin = 255, bMax = 0;
+function computeBounds(pixels: Uint32Array): Omit<ColorBox, "pixels"> {
+  let rMin = 255,
+    rMax = 0,
+    gMin = 255,
+    gMax = 0,
+    bMin = 255,
+    bMax = 0;
   for (let i = 0; i < pixels.length; i++) {
     const c = pixels[i];
-    const r = unpackR(c), g = unpackG(c), b = unpackB(c);
-    if (r < rMin) rMin = r; if (r > rMax) rMax = r;
-    if (g < gMin) gMin = g; if (g > gMax) gMax = g;
-    if (b < bMin) bMin = b; if (b > bMax) bMax = b;
+    const r = unpackR(c),
+      g = unpackG(c),
+      b = unpackB(c);
+    if (r < rMin) rMin = r;
+    if (r > rMax) rMax = r;
+    if (g < gMin) gMin = g;
+    if (g > gMax) gMax = g;
+    if (b < bMin) bMin = b;
+    if (b > bMax) bMax = b;
   }
   return { rMin, rMax, gMin, gMax, bMin, bMax };
 }
 
-function medianCut(imageData: ImageData, maxColors: number): { palette: Uint8Array; indices: Uint8Array } {
+function medianCut(
+  imageData: ImageData,
+  maxColors: number,
+): { palette: Uint8Array; indices: Uint8Array } {
   const data = imageData.data;
   const pixelCount = imageData.width * imageData.height;
 
@@ -135,7 +157,10 @@ function medianCut(imageData: ImageData, maxColors: number): { palette: Uint8Arr
       const b = boxes[i];
       if (b.pixels.length <= 1) continue;
       const range = Math.max(b.rMax - b.rMin, b.gMax - b.gMin, b.bMax - b.bMin);
-      if (range > bestRange) { bestRange = range; bestIdx = i; }
+      if (range > bestRange) {
+        bestRange = range;
+        bestIdx = i;
+      }
     }
 
     if (bestRange <= 0) break; // can't split further
@@ -172,7 +197,9 @@ function medianCut(imageData: ImageData, maxColors: number): { palette: Uint8Arr
   const paletteColors: number[] = []; // packed averages for nearest-color lookup
   for (let i = 0; i < boxes.length; i++) {
     const box = boxes[i];
-    let rSum = 0, gSum = 0, bSum = 0;
+    let rSum = 0,
+      gSum = 0,
+      bSum = 0;
     for (let j = 0; j < box.pixels.length; j++) {
       rSum += unpackR(box.pixels[j]);
       gSum += unpackG(box.pixels[j]);
@@ -189,22 +216,29 @@ function medianCut(imageData: ImageData, maxColors: number): { palette: Uint8Arr
   }
 
   // Map each pixel to its nearest palette entry
-  // Build a cache for speed — there are at most uniqueMap.size entries
+  // Build a cache for speed - there are at most uniqueMap.size entries
   const nearestCache = new Map<number, number>();
 
   function findNearest(c: number): number {
     const cached = nearestCache.get(c);
     if (cached !== undefined) return cached;
-    const r = unpackR(c), g = unpackG(c), b = unpackB(c);
+    const r = unpackR(c),
+      g = unpackG(c),
+      b = unpackB(c);
     let bestDist = Infinity;
     let bestI = 0;
     for (let i = 0; i < paletteColors.length; i++) {
       const pr = unpackR(paletteColors[i]);
       const pg = unpackG(paletteColors[i]);
       const pb = unpackB(paletteColors[i]);
-      const dr = r - pr, dg = g - pg, db = b - pb;
+      const dr = r - pr,
+        dg = g - pg,
+        db = b - pb;
       const dist = dr * dr + dg * dg + db * db;
-      if (dist < bestDist) { bestDist = dist; bestI = i; }
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestI = i;
+      }
       if (dist === 0) break;
     }
     nearestCache.set(c, bestI);
@@ -244,7 +278,7 @@ function lzwEncode(indices: Uint8Array, minCodeSize: number): Uint8Array {
   }
 
   function emitCode(code: number, codeSize: number): void {
-    curByte |= (code << curBits);
+    curByte |= code << curBits;
     curBits += codeSize;
     while (curBits >= 8) {
       subBlock.push(curByte & 0xff);
@@ -269,7 +303,7 @@ function lzwEncode(indices: Uint8Array, minCodeSize: number): Uint8Array {
   function resetTable(): void {
     table = new Map();
     for (let i = 0; i < clearCode; i++) {
-      table.set((0xFFF << 12) | i, i); // prefix=0xFFF (sentinel "no prefix"), suffix=i
+      table.set((0xfff << 12) | i, i); // prefix=0xFFF (sentinel "no prefix"), suffix=i
     }
     nextCode = eoiCode + 1;
     codeSize = minCodeSize + 1;
@@ -312,7 +346,7 @@ function lzwEncode(indices: Uint8Array, minCodeSize: number): Uint8Array {
         table.set(key, nextCode);
         nextCode++;
         // Check if we need to increase code size
-        if (nextCode > (1 << codeSize) && codeSize < 12) {
+        if (nextCode > 1 << codeSize && codeSize < 12) {
           codeSize++;
         }
       } else {
@@ -349,13 +383,13 @@ export async function encodeGif(
   height: number,
 ): Promise<Blob> {
   if (frames.length === 0) {
-    throw new Error('At least one frame is required');
+    throw new Error("At least one frame is required");
   }
 
   const stream = new ByteStream();
 
   // --- Header ---
-  stream.writeString('GIF89a');
+  stream.writeString("GIF89a");
 
   // --- Logical Screen Descriptor ---
   stream.writeUint16LE(width);
@@ -384,7 +418,7 @@ export async function encodeGif(
     stream.writeByte(0x21); // extension introducer
     stream.writeByte(0xff); // application extension
     stream.writeByte(0x0b); // block size (11)
-    stream.writeString('NETSCAPE2.0');
+    stream.writeString("NETSCAPE2.0");
     stream.writeByte(0x03); // sub-block size
     stream.writeByte(0x01); // sub-block ID
     stream.writeUint16LE(0); // loop count (0 = infinite)
@@ -405,7 +439,7 @@ export async function encodeGif(
     if (fi === 0) {
       indices = firstQ.indices;
     } else {
-      // Quantize subsequent frames — use a local color table
+      // Quantize subsequent frames - use a local color table
       const q = medianCut(frame.imageData, colorTableSize);
       indices = q.indices;
       localPalette = q.palette;
@@ -454,7 +488,7 @@ export async function encodeGif(
   stream.writeByte(0x3b);
 
   const data = stream.toUint8Array();
-  return new Blob([data], { type: 'image/gif' });
+  return new Blob([data], { type: "image/gif" });
 }
 
 // ---------------------------------------------------------------------------
@@ -471,7 +505,7 @@ export async function recordCanvasGif(
   delayMs: number,
   onFrame?: (frameIndex: number) => void | Promise<void>,
 ): Promise<Blob> {
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext("2d")!;
   const width = canvas.width;
   const height = canvas.height;
   const frames: GifFrame[] = [];
@@ -491,8 +525,10 @@ export async function recordCanvasGif(
 /**
  * Capture a single-frame GIF snapshot of the current canvas state.
  */
-export async function captureCanvasAsGif(canvas: HTMLCanvasElement): Promise<Blob> {
-  const ctx = canvas.getContext('2d')!;
+export async function captureCanvasAsGif(
+  canvas: HTMLCanvasElement,
+): Promise<Blob> {
+  const ctx = canvas.getContext("2d")!;
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   return encodeGif([{ imageData, delay: 0 }], canvas.width, canvas.height);
 }
@@ -500,9 +536,9 @@ export async function captureCanvasAsGif(canvas: HTMLCanvasElement): Promise<Blo
 /**
  * Download a GIF blob as a file.
  */
-export function downloadGif(blob: Blob, filename = 'maxither.gif'): void {
+export function downloadGif(blob: Blob, filename = "maxither.gif"): void {
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
   a.download = filename;
   a.click();
